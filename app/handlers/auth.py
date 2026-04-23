@@ -1,0 +1,132 @@
+import logging 
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes
+
+from config import ADMIN_ID
+from app.db.mongo import users_col
+
+logger = logging.getLogger(__name__)
+
+#===== STATES =====
+NAME, PHONE, DOCUMENT = range(3)
+
+
+
+#===== START VERIFICATION =====
+async def start_verification(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    
+    existing = await users_col.find_one({"_id":user.id})
+    
+    if existing:
+        if existing.get("verified"):
+            await update.message.reply_text("✅ You are already verified.")
+            return -1
+        
+        if existing.get("verification_status") == "pending":
+            await update.message.reply_text("⏳ Your verification is under review.")
+            return -1
+        
+    await update.message.reply_text("🙏 Welcome to Aavhan\n\nEnter your full name:")  
+    
+    return NAME
+
+
+
+#===== STEP 1 : NAME =====
+async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return NAME
+
+    context.user_data["name"] = update.message.text
+
+    contact_btn = KeyboardButton("📱 Share Phone Number", request_contact=True)
+    markup = ReplyKeyboardMarkup([[contact_btn]], resize_keyboard=True)
+
+    await update.message.reply_text(
+        "Please share your phone number:",
+        reply_markup=markup
+    )
+
+    return PHONE
+
+
+# ===== STEP 2: PHONE =====
+async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message.contact:
+        await update.message.reply_text(
+            "❌ Please tap the button to share your phone number."
+        )
+        return PHONE
+
+    contact = update.message.contact
+    context.user_data["phone"] = contact.phone_number
+
+    await update.message.reply_text("📄 Upload your ID proof (Aadhaar/PAN):")
+
+    return DOCUMENT
+
+
+
+# ===== STEP 3: DOCUMENT =====
+async def get_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message.document and not update.message.photo:
+         await update.message.reply_text("❌ Please upload a valid document.")
+         return DOCUMENT
+     
+    file_id = (
+        update.message.document.file_id
+        if update.message.document
+        else update.message.photo[-1].file_id
+    )
+     
+    user = update.effective_user
+     
+      # Save to DB
+    data = {
+        "_id": user.id,
+        "name": context.user_data["name"],
+        "phone": context.user_data["phone"],
+        "role": "priest",
+        "verified": False,
+        "verification_status": "pending",
+        "document": file_id,
+    }
+    
+    await users_col.update_one({"_id": user.id}, {"$set": data}, upsert=True)
+    
+    await update.message.reply_text("✅ Submitted! Waiting for admin approval.")
+    
+     # Notify Admin
+    await notify_admin(context, user.id, data)
+    
+    return -1
+
+
+# ===== ADMIN NOTIFICATION =====
+async def notify_admin(context, user_id, data):
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✅ Approve", callback_data=f"approve_{user_id}"),
+            InlineKeyboardButton("❌ Reject", callback_data=f"reject_{user_id}")
+        ]
+    ])
+    
+    text = f"""
+            📥 New Priest Verification
+
+             👤 Name: {data['name']}
+             📱 Phone: {data['phone']}
+             🆔 ID: {user_id}
+            """
+
+    await context.bot.send_message(
+        chat_id=int(ADMIN_ID),
+        text=text,
+        reply_markup=keyboard
+    )
+    
+    await context.bot.send_document(
+        chat_id=int(ADMIN_ID),
+        document=data["document"]
+    )
