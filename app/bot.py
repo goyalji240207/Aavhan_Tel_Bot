@@ -13,7 +13,7 @@ from config import BOT_TOKEN
 from app.handlers.start import start
 from app.handlers.admin import admin_callback, admin_broadcast
 from app.services.admin_jobs import admin_jobs_menu, admin_jobs_callback
-from app.handlers.jobs import list_jobs, list_applied_jobs, list_rejected_jobs
+from app.handlers.jobs import list_jobs, list_applied_jobs, list_rejected_jobs, list_history
 from app.handlers.job_actions import job_callback
 from app.handlers.help import help_command
 
@@ -50,6 +50,7 @@ def create_bot():
     app.add_handler(CommandHandler("jobs", list_jobs))
     app.add_handler(CommandHandler("applied", list_applied_jobs))
     app.add_handler(CommandHandler("rejected", list_rejected_jobs))
+    app.add_handler(CommandHandler("history", list_history))
     app.add_handler(CommandHandler("admin_jobs", admin_jobs_menu))
     app.add_handler(CommandHandler("broadcast", admin_broadcast))
     app.add_handler(conv_handler)
@@ -72,7 +73,7 @@ def create_bot():
     app.add_handler(
         CallbackQueryHandler(
             job_callback,
-            pattern="^(apply_job_|reject_job_|cancel_job_|reapply_job_)"
+            pattern="^(apply_job_|reject_job_|cancel_job_|reapply_job_|complete_job_)"
         )
     )
 

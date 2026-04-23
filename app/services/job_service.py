@@ -10,7 +10,8 @@ async def get_available_jobs(user_id):
 
 async def get_applied_jobs(user_id):
     jobs = jobs_col.find({
-        "assigned_priest": user_id
+        "assigned_priest": user_id,
+        "status": "assigned"
     }).sort("created_at", -1)
 
     return await jobs.to_list(length=20)
@@ -18,6 +19,14 @@ async def get_applied_jobs(user_id):
 async def get_rejected_jobs(user_id):
     jobs = jobs_col.find({
         "rejected_by": user_id
+    }).sort("created_at", -1)
+
+    return await jobs.to_list(length=20)
+
+async def get_completed_jobs(user_id):
+    jobs = jobs_col.find({
+        "assigned_priest": user_id,
+        "status": "completed"
     }).sort("created_at", -1)
 
     return await jobs.to_list(length=20)

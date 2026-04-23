@@ -27,11 +27,13 @@ async def help_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
             "/jobs - List available open Aavhans\n"
             "/applied - View your confirmed bookings\n"
             "/rejected - View your rejected jobs\n"
+            "/history - View your past completed jobs\n"
             "/help - Show this menu"
         )
         keyboard = [
             [KeyboardButton("/jobs"), KeyboardButton("/applied")],
-            [KeyboardButton("/rejected"), KeyboardButton("/help")]
+            [KeyboardButton("/rejected"), KeyboardButton("/history")],
+            [KeyboardButton("/help")]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await update.message.reply_text(user_text, reply_markup=reply_markup, parse_mode="HTML")

@@ -135,3 +135,36 @@ async def job_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         await edit_reply("✅ You successfully re-applied and got the job!")
+
+    # ===== COMPLETE =====
+    elif data.startswith("complete_job_"):
+        job_id = ObjectId(data.split("_")[2])
+
+        update_result = await jobs_col.update_one(
+            {"_id": job_id, "assigned_priest": user_id},
+            {"$set": {"status": "completed"}}
+        )
+
+        if update_result.modified_count > 0:
+            await edit_reply("✅ You have successfully marked this Puja as completed!")
+            
+            # Notify Admin
+            try:
+                job = await jobs_col.find_one({"_id": job_id})
+                priest_name = query.from_user.full_name
+                job_title = job.get('title', 'Unknown Puja') if job else 'Unknown Puja'
+                admin_text = (
+                    f"✅ *Puja Completed*\n\n"
+                    f"👤 *Priest:* {priest_name} (`{user_id}`)\n"
+                    f"📿 *Job:* {job_title}\n\n"
+                    f"ℹ️ _The priest has marked this job as completed._"
+                )
+                await context.bot.send_message(
+                    chat_id=int(ADMIN_ID), 
+                    text=admin_text, 
+                    parse_mode="Markdown"
+                )
+            except Exception as e:
+                print(f"Error notifying admin about completion: {e}")
+        else:
+            await edit_reply("❌ Could not complete the job. It may already be completed or reassigned.")
