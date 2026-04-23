@@ -1,6 +1,6 @@
 import logging 
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
+from telegram.ext import ContextTypes, ConversationHandler
 
 from config import ADMIN_ID
 from app.db.mongo import users_col
@@ -21,11 +21,11 @@ async def start_verification(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if existing:
         if existing.get("verified"):
             await update.message.reply_text("✅ You are already verified.")
-            return -1
+            return ConversationHandler.END
         
         if existing.get("verification_status") == "pending":
             await update.message.reply_text("⏳ Your verification is under review.")
-            return -1
+            return ConversationHandler.END
         
     await update.message.reply_text("🙏 Welcome to Aavhan\n\nEnter your full name:")  
     
@@ -95,20 +95,23 @@ async def get_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await users_col.update_one({"_id": user.id}, {"$set": data}, upsert=True)
     
-    await update.message.reply_text("✅ Submitted! Waiting for admin approval.")
+    await update.message.reply_text(
+        "✅ Submitted! Waiting for admin approval.",
+        reply_markup=ReplyKeyboardRemove()
+    )
     
      # Notify Admin
     await notify_admin(context, user.id, data)
     
-    return -1
+    return ConversationHandler.END
 
 
 # ===== ADMIN NOTIFICATION =====
 async def notify_admin(context, user_id, data):
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Approve", callback_data=f"approve_{user_id}"),
-            InlineKeyboardButton("❌ Reject", callback_data=f"reject_{user_id}")
+            InlineKeyboardButton("✅ Approve", callback_data=f"approve_user_{user_id}"),
+            InlineKeyboardButton("❌ Reject", callback_data=f"reject_user_{user_id}")
         ]
     ])
     
@@ -120,13 +123,9 @@ async def notify_admin(context, user_id, data):
              🆔 ID: {user_id}
             """
 
-    await context.bot.send_message(
-        chat_id=int(ADMIN_ID),
-        text=text,
-        reply_markup=keyboard
-    )
-    
     await context.bot.send_document(
         chat_id=int(ADMIN_ID),
-        document=data["document"]
+        document=data["document"],
+        caption=text,
+        reply_markup=keyboard
     )

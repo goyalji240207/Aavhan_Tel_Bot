@@ -11,7 +11,7 @@ from config import BOT_TOKEN
 
 # handlers
 from app.handlers.start import start
-from app.handlers.admin import admin_callback
+from app.handlers.admin import admin_callback, admin_broadcast
 from app.services.admin_jobs import admin_jobs_menu, admin_jobs_callback
 from app.handlers.jobs import list_jobs, list_applied_jobs, list_rejected_jobs
 from app.handlers.job_actions import job_callback
@@ -33,7 +33,10 @@ def create_bot():
 
     # ===== Conversation =====
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("verify", start_verification)],
+        entry_points=[
+            CommandHandler("verify", start_verification),
+            CommandHandler("start", start)
+        ],
         states={
             NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
             PHONE: [MessageHandler(filters.CONTACT, get_phone)],
@@ -43,12 +46,12 @@ def create_bot():
     )
 
     # ===== Commands =====
-    app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("jobs", list_jobs))
     app.add_handler(CommandHandler("applied", list_applied_jobs))
     app.add_handler(CommandHandler("rejected", list_rejected_jobs))
     app.add_handler(CommandHandler("admin_jobs", admin_jobs_menu))
+    app.add_handler(CommandHandler("broadcast", admin_broadcast))
     app.add_handler(conv_handler)
 
     # ===== Callback handlers (FIXED) =====

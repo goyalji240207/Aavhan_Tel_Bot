@@ -1,5 +1,5 @@
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, ConversationHandler
 
 from app.db.mongo import users_col
 from app.handlers.auth import start_verification
@@ -29,14 +29,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         elif status == "rejected":
             await update.message.reply_text("❌ Verification rejected. Contact admin.")
+            return ConversationHandler.END
         else:
-            await start_verification(update, context)
+            return await start_verification(update, context)
             
-        return
+        return ConversationHandler.END
     
     # Build the main menu keyboard
     if user.id == int(ADMIN_ID):
-        keyboard = [[KeyboardButton("/admin_jobs"), KeyboardButton("/help")]]
+        keyboard = [
+            [KeyboardButton("/admin_jobs"), KeyboardButton("/broadcast")],
+            [KeyboardButton("/help")]
+        ]
     else:
         keyboard = [
             [KeyboardButton("/jobs"), KeyboardButton("/applied")],
@@ -49,3 +53,5 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🙏 Welcome back! You are verified.\n\nChoose an option from the menu below:", 
         reply_markup=reply_markup
     )
+
+    return ConversationHandler.END

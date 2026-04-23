@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 from bson import ObjectId
 from app.services.conflict_service import has_conflict
 from app.services.broadcast import broadcast_job
+from config import ADMIN_ID
 
 from app.db.mongo import jobs_col
 
@@ -83,6 +84,24 @@ async def job_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
            job_to_broadcast = await jobs_col.find_one({"_id": job_id})
            if job_to_broadcast:
                await broadcast_job(context.application, job_to_broadcast)
+           
+               # Notify the Admin
+               try:
+                   priest_name = query.from_user.full_name
+                   job_title = job_to_broadcast.get('title', 'Unknown Puja')
+                   admin_text = (
+                       f"⚠️ *Job Assignment Cancelled*\n\n"
+                       f"👤 *Priest:* {priest_name} (`{user_id}`)\n"
+                       f"📿 *Job:* {job_title}\n\n"
+                       f"ℹ️ _The job has been automatically re-listed._"
+                   )
+                   await context.bot.send_message(
+                       chat_id=int(ADMIN_ID), 
+                       text=admin_text, 
+                       parse_mode="Markdown"
+                   )
+               except Exception as e:
+                   print(f"Error notifying admin: {e}")
            
            await edit_reply("❌ You have cancelled your assignment. The job has been re-listed for other priests.")
        else:
