@@ -1,9 +1,11 @@
+from datetime import datetime
 from app.db.mongo import jobs_col
 
 async def get_available_jobs(user_id):
     jobs = jobs_col.find({
         "status": "open",
-        "rejected_by": {"$nin": [user_id]}
+        "rejected_by": {"$nin": [user_id]},
+        "datetime": {"$gt": datetime.utcnow()}
     }).sort("created_at", -1)
 
     return await jobs.to_list(length=20)
