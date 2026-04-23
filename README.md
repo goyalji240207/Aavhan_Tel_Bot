@@ -11,18 +11,22 @@ A production-grade Telegram Bot designed to seamlessly connect Yajmans (Hosts) w
 - **Job Broadcasting:** Instantly receive new Puja Aavhans (job requests) via dynamically generated, beautifully designed image cards.
 - **One-Click Actions:** Accept, Reject, or Re-apply to jobs directly from the Telegram chat.
 - **Smart Scheduling:** Built-in conflict detection prevents double-booking a priest within a 3-hour window.
+- **Automated Reminders:** Get notified 24 hours, 2 hours, and 1 hour before a scheduled Puja.
 - **Job Management:** 
   - `/jobs` - View available open jobs.
   - `/applied` - View confirmed/assigned bookings (Green theme).
   - `/rejected` - View previously rejected jobs (Muted Gray theme) with an option to re-apply.
+  - `/history` - View your past successfully completed jobs.
 
 ### 👑 For Admins
 - **Secure Access:** Dedicated `/admin_jobs` panel restricted entirely to the configured `ADMIN_ID`.
 - **Verification Management:** Approve or reject KYC documents submitted by new priests.
+- **Broadcast Messaging:** Send custom text announcements to all verified priests using `/broadcast <message>`.
 - **Job Dashboard:** 
   - 📬 View all **Open** jobs.
   - ✅ View **Booked** jobs and instantly see which priest is assigned.
   - ❌ View **Rejected** jobs and see the list of priests who declined.
+  - 🎉 View **Completed** jobs and review finished pujas.
 
 ---
 
@@ -30,6 +34,7 @@ A production-grade Telegram Bot designed to seamlessly connect Yajmans (Hosts) w
 
 - **Language:** Python 3.9+
 - **Framework:** `python-telegram-bot` (v20+)
+- **Web Server:** `FastAPI` & `Uvicorn` (for handling Webhooks)
 - **Database:** MongoDB (using `motor` for async I/O)
 - **Image Processing:** `Pillow` (PIL) for on-the-fly generation of rich Pujan Invitation cards.
 
@@ -57,7 +62,14 @@ app/
 │   └── user_service.py    # Database queries for users
 ├── middleware/
 │   └── auth.py            # Verification checks
+├── routes/
+│   └── webhook.py         # FastAPI webhook endpoints
+├── watchers/
+│   ├── job_watcher.py     # MongoDB change stream watcher for auto-broadcasts
+│   └── reminder_watcher.py# Background task for upcoming job reminders
 └── bot.py                 # Application builder and route registration
+config.py                  # Environment variables manager
+main.py                    # FastAPI application entry point
 ```
 
 ---
@@ -98,15 +110,8 @@ ADMIN_ID=your_personal_telegram_user_id
 ### 4. Run the Bot
 
 ```bash
-python main.py
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 *(Note: Ensure your `main.py` imports and runs the `create_bot()` function from `app.bot`)*
 
 ---
-
-## 🛡️ Production Deployment Recommendations
-
-1. **Process Manager:** Use `systemd` or `PM2` to keep the bot running in the background and automatically restart on crashes.
-2. **Containerization:** For easier scaling, wrap the application in a `Dockerfile`.
-3. **Fonts:** Ensure the host machine has standard fonts installed (`timesbd.ttf`, `arial.ttf`, or `DejaVuSans.ttf`) so the `Pillow` image generator can render text properly.
-4. **Webhooks:** Consider switching from long-polling to Webhooks for better performance under heavy load.
