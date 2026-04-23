@@ -28,15 +28,19 @@ async def reminder_loop(app):
             # skip past jobs
             if diff <= 0:
                 continue
+                
+            sent = job.get("reminders_sent", [])
 
-            if diff <= 86400 and "24h" not in job.get("reminders_sent", []):
-                await send_reminder(app, priest_id, job, "24h")
-
-            if diff <= 7200 and "2h" not in job.get("reminders_sent", []):
-                await send_reminder(app, priest_id, job, "2h")
-
-            if diff <= 3600 and "1h" not in job.get("reminders_sent", []):
-                await send_reminder(app, priest_id, job, "1h")
+            # Trigger only the most urgent reminder & cascade skip the older ones
+            if diff <= 3600:
+                if "1h" not in sent:
+                    await send_reminder(app, priest_id, job, "1h")
+            elif diff <= 7200:
+                if "2h" not in sent:
+                    await send_reminder(app, priest_id, job, "2h")
+            elif diff <= 86400:
+                if "24h" not in sent:
+                    await send_reminder(app, priest_id, job, "24h")
 
         await asyncio.sleep(60)
 
@@ -85,10 +89,10 @@ async def send_reminder(app, user_id, job, tag):
 {title}
 
 {emoji} *{job['title']}*
-📍 {job['location']}
+Location: {job['location']}
 
-🕒 *Scheduled:* {format_datetime(job_time)}
-⏳ *Time left:* {time_left}
+Scheduled: {format_datetime(job_time)}
+Time left: {time_left}
 
 🙏 Please be ready before time.
 """
@@ -99,10 +103,16 @@ async def send_reminder(app, user_id, job, tag):
             parse_mode="Markdown"
         )
 
-        # ✅ mark sent
+        # ✅ mark sent and cascade skip older tags to prevent staggered spam on urgent jobs
+        tags_to_add = [tag]
+        if tag == "1h":
+            tags_to_add = ["1h", "2h", "24h"]
+        elif tag == "2h":
+            tags_to_add = ["2h", "24h"]
+            
         await jobs_col.update_one(
             {"_id": job["_id"]},
-            {"$addToSet": {"reminders_sent": tag}}
+            {"$addToSet": {"reminders_sent": {"$each": tags_to_add}}}
         )
 
     except Exception as e:

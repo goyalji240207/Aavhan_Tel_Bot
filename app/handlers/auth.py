@@ -81,6 +81,7 @@ async def get_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
      
     user = update.effective_user
+    doc_type = "document" if update.message.document else "photo"
      
       # Save to DB
     data = {
@@ -91,6 +92,7 @@ async def get_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "verified": False,
         "verification_status": "pending",
         "document": file_id,
+        "doc_type": doc_type,
     }
     
     await users_col.update_one({"_id": user.id}, {"$set": data}, upsert=True)
@@ -123,9 +125,17 @@ async def notify_admin(context, user_id, data):
              🆔 ID: {user_id}
             """
 
-    await context.bot.send_document(
-        chat_id=int(ADMIN_ID),
-        document=data["document"],
-        caption=text,
-        reply_markup=keyboard
-    )
+    if data.get("doc_type") == "photo":
+        await context.bot.send_photo(
+            chat_id=int(ADMIN_ID),
+            photo=data["document"],
+            caption=text,
+            reply_markup=keyboard
+        )
+    else:
+        await context.bot.send_document(
+            chat_id=int(ADMIN_ID),
+            document=data["document"],
+            caption=text,
+            reply_markup=keyboard
+        )

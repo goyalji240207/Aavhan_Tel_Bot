@@ -44,9 +44,9 @@ async def list_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         text = (
             f"📿 <b>{job['title']}</b>\n"
-            f"📍 <b>Location:</b> {job['location']}\n"
-            f"📅 <b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}\n"
-            f"💰 <b>Dakshina:</b> ₹{job.get('fees', 'N/A')}"
+            f"<b>Location:</b> {job['location']}\n"
+            f"<b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}\n"
+            f"<b>Dakshina:</b> ₹{job.get('fees', 'N/A')}"
         )
 
         await update.message.reply_photo(
@@ -89,10 +89,10 @@ async def list_applied_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         text = (
             f"✅ <b>{job['title']}</b>\n"
-            f"📍 <b>Location:</b> {job['location']}\n"
-            f"📅 <b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}\n"
-            f"💰 <b>Dakshina:</b> ₹{job.get('fees', 'N/A')}\n"
-            f"📌 <b>Status:</b> {job.get('status', 'assigned').capitalize()}"
+            f"<b>Location:</b> {job['location']}\n"
+            f"<b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}\n"
+            f"<b>Dakshina:</b> ₹{job.get('fees', 'N/A')}\n"
+            f"<b>Status:</b> {job.get('status', 'assigned').capitalize()}"
         )
         await update.message.reply_photo(photo=image_bytes, caption=text, reply_markup=keyboard, parse_mode="HTML")
 
@@ -129,9 +129,9 @@ async def list_rejected_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         text = (
             f"❌ <b>{job['title']}</b>\n"
-            f"📍 <b>Location:</b> {job['location']}\n"
-            f"📅 <b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}\n"
-            f"💰 <b>Dakshina:</b> ₹{job.get('fees', 'N/A')}"
+            f"<b>Location:</b> {job['location']}\n"
+            f"<b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}\n"
+            f"<b>Dakshina:</b> ₹{job.get('fees', 'N/A')}"
         )
         await update.message.reply_photo(photo=image_bytes, caption=text, reply_markup=keyboard, parse_mode="HTML")
 
@@ -156,8 +156,8 @@ async def list_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
         image_bytes = generate_job_image(job, theme="green")
         text = (
             f"🎉 <b>{job['title']}</b>\n"
-            f"📍 <b>Location:</b> {job['location']}\n"
-            f"📅 <b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}\n"
-            f"💰 <b>Dakshina:</b> ₹{job.get('fees', 'N/A')}"
+            f"<b>Location:</b> {job['location']}\n"
+            f"<b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}\n"
+            f"<b>Dakshina:</b> ₹{job.get('fees', 'N/A')}"
         )
         await update.message.reply_photo(photo=image_bytes, caption=text, parse_mode="HTML")

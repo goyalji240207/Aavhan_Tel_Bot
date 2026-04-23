@@ -57,8 +57,8 @@ async def list_booked_jobs_for_admin(query: CallbackQuery):
         image_bytes = generate_job_image(job, theme="green")
 
         text = f"✅ <b>{job['title']}</b> at {job['location']}\n" \
-               f"💰 <b>Dakshina:</b> ₹{job.get('fees', 'N/A')} | 📅 <b>Date:</b> {job.get('date', 'N/A')} {job.get('time', '')}\n" \
-               f"👤 <b>Assigned to:</b> {priest_info}"
+               f"<b>Dakshina:</b> ₹{job.get('fees', 'N/A')} | <b>Date:</b> {job.get('date', 'N/A')} {job.get('time', '')}\n" \
+               f"<b>Assigned to:</b> {priest_info}"
         await query.message.reply_photo(photo=image_bytes, caption=text, parse_mode="HTML")
 
 
@@ -80,7 +80,7 @@ async def list_rejected_jobs_for_admin(query: CallbackQuery):
         image_bytes = generate_job_image(job, theme="red")
 
         text = f"❌ <b>{job['title']}</b> at {job['location']} (Status: {job.get('status')})\n" \
-               f"🙅‍♂️ <b>Rejected by:</b>\n - {rejected_by_info}"
+               f"<b>Rejected by:</b>\n - {rejected_by_info}"
         await query.message.reply_photo(photo=image_bytes, caption=text, parse_mode="HTML")
 
 
@@ -93,7 +93,7 @@ async def list_open_jobs_for_admin(query: CallbackQuery):
     await query.edit_message_text("--- 📬 Open Jobs ---")
     for job in jobs[:10]:
         text = f"*{job['title']}* at {job['location']}\n" \
-               f"💰 Fees: ₹{job.get('fees', 'N/A')} | 📅 {job.get('date', 'N/A')}"
+               f"Fees: ₹{job.get('fees', 'N/A')} | {job.get('date', 'N/A')}"
         await query.message.reply_text(text, parse_mode="Markdown")
 
 
@@ -114,6 +114,6 @@ async def list_completed_jobs_for_admin(query: CallbackQuery):
         image_bytes = generate_job_image(job, theme="green")
 
         text = f"🎉 <b>{job['title']}</b> at {job['location']}\n" \
-               f"💰 <b>Dakshina:</b> ₹{job.get('fees', 'N/A')} | 📅 <b>Date:</b> {job.get('date', 'N/A')} {job.get('time', '')}\n" \
-               f"👤 <b>Completed by:</b> {priest_info}"
+               f"<b>Dakshina:</b> ₹{job.get('fees', 'N/A')} | <b>Date:</b> {job.get('date', 'N/A')} {job.get('time', '')}\n" \
+               f"<b>Completed by:</b> {priest_info}"
         await query.message.reply_photo(photo=image_bytes, caption=text, parse_mode="HTML")

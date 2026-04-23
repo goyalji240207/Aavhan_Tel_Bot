@@ -36,9 +36,9 @@ async def broadcast_job(app, job):
                 caption=f"""
 🕉️ <b>{job['title']}</b>
 
-📍 <b>Location:</b> {job['location']}
-📅 <b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}
-💰 <b>Dakshina:</b> ₹{job.get('fees', 'N/A')}
+<b>Location:</b> {job['location']}
+<b>Date & Time:</b> {job.get('date', 'N/A')} {job.get('time', 'N/A')}
+<b>Dakshina:</b> ₹{job.get('fees', 'N/A')}
 
 🙏 <i>Please accept or reject this Aavhan.</i>
 """,
